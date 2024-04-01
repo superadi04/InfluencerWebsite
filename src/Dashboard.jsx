@@ -7,7 +7,7 @@ import {
     BanknotesIcon,
     Bars3Icon
 } from '@heroicons/react/24/outline'
-import { Fragment, useState, useRef } from 'react'
+import { Fragment, useState, useRef, useEffect } from 'react'
 import { Dialog, Transition } from '@headlessui/react'
 import YourInfluencers from "./YourInfluencers"
 import Pricing from "./Pricing"
@@ -55,6 +55,38 @@ export default function Dashboard({pageName}) {
     // Use `navigate` to change the route programmatically
     navigate(`/${itemHref}`);
   };
+
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [dropdownClass, setDropdownClass] = useState('');
+  const containerRef = useRef(null);
+
+  const toggleDropdown = () => {
+    if (isDropdownOpen) {
+      // Start the exit transition
+      setDropdownClass('dropdown-exit');
+      setTimeout(() => {
+        setIsDropdownOpen(false);
+        setDropdownClass('');
+      }, 300); // Match the timeout to your CSS transition
+    } else {
+      setIsDropdownOpen(true);
+      // Start the enter transition
+      setDropdownClass('dropdown-enter');
+      setTimeout(() => setDropdownClass('dropdown-enter-active'), 10);
+    }
+  };
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (containerRef.current && !containerRef.current.contains(event.target)) {
+        setIsDropdownOpen(false);
+        setDropdownClass('');
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   return (
     <>
@@ -183,20 +215,33 @@ export default function Dashboard({pageName}) {
                     ))}
                   </ul>
                 </li>
-                <li className="-mx-6 mt-auto">
-                  <a
-                    href="#"
-                    className="flex items-center gap-x-4 px-6 py-3 text-sm font-semibold leading-6 text-white hover:bg-gray-800"
-                  >
-                    <img
-                      className="h-8 w-8 rounded-full bg-gray-800"
-                      src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"
-                      alt=""
-                    />
-                    <span className="sr-only">Your profile</span>
-                    <span aria-hidden="true">Tom Cook</span>
-                  </a>
-                </li>
+                <div className="relative -mx-6 mt-auto text-white" style={{ textAlign: 'center' }} ref={containerRef}>
+      {isDropdownOpen && (
+        <div
+          className={`absolute bottom-full mb-2 w-full flex justify-center ${dropdownClass}`}
+          onClick={() => {
+            console.log('Logging out...');
+            setIsDropdownOpen(false);
+            setDropdownClass('');
+          }}
+        >
+          <div className="bg-gray-900 text-white py-2 px-4 cursor-pointer rounded">
+            Log Out
+          </div>
+        </div>
+      )}
+      <div
+        className="cursor-pointer px-6 py-3 text-sm font-semibold leading-6 hover:bg-gray-900 flex items-center gap-x-4"
+        onClick={toggleDropdown}
+      >
+        <img
+          className="h-8 w-8 rounded-full bg-gray-800"
+          src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"
+          alt="Profile"
+        />
+        <span>Tom Cook</span>
+      </div>
+    </div>
               </ul>
             </nav>
           </div>
